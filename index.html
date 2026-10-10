@@ -14,18 +14,29 @@
   --bg: #EBF1F0; --surface: #FFFFFF; --ink: #13201F; --muted: #526664; --line: #D3DEDC;
   --mine: #0E6B62; --mine-ink: #FFFFFF; --mine-meta: #D2EEEA;
   --theirs: #FFFFFF; --theirs-ink: #13201F; --send-off: #D3DEDC;
-  --danger: #B3261E; --focus: #0E6B62; --ok: #1E9E6A; --off: #9AA9A7;
+  --danger: #B3261E; --focus: #0E6B62; --ok: #1E9E6A; --off: #9AA9A7; --name-l: 36%;
+  --chip: #E3ECEA; --chip-mine: #CBEBE6;
   --font-body: "Segoe UI", Tahoma, "Noto Sans Arabic", system-ui, sans-serif;
   color-scheme: light;
 }
+:root:not([data-theme="light"]) { }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0B1413; --surface: #142120; --ink: #E6F0EE; --muted: #8CA5A2; --line: #243634;
     --mine: #137A6F; --mine-ink: #FFFFFF; --mine-meta: #CBEBE6;
     --theirs: #1B2C2A; --theirs-ink: #E6F0EE; --send-off: #243634;
-    --danger: #FF8A80; --focus: #5FD0C2; --ok: #4CD6A0; --off: #5C706E;
+    --danger: #FF8A80; --focus: #5FD0C2; --ok: #4CD6A0; --off: #5C706E; --name-l: 70%;
+    --chip: #1E3230; --chip-mine: #1F4A45;
     color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1413; --surface: #142120; --ink: #E6F0EE; --muted: #8CA5A2; --line: #243634;
+  --mine: #137A6F; --mine-ink: #FFFFFF; --mine-meta: #CBEBE6;
+  --theirs: #1B2C2A; --theirs-ink: #E6F0EE; --send-off: #243634;
+  --danger: #FF8A80; --focus: #5FD0C2; --ok: #4CD6A0; --off: #5C706E; --name-l: 70%;
+  --chip: #1E3230; --chip-mine: #1F4A45;
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
@@ -36,14 +47,18 @@ button, textarea, input { font: inherit; color: inherit; }
 #app { height: 100%; max-width: 720px; margin-inline: auto; display: flex; flex-direction: column; font-size: 16px; }
 @media (min-width: 760px) { #app { border-inline: 1px solid var(--line); } }
 
-.top { display: flex; align-items: center; gap: 12px; padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top { display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
 .mark { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--mine); color: var(--mine-ink); }
 .who { min-width: 0; flex: 1; }
-.who h1 { margin: 0; font-size: 22px; line-height: 1.2; font-weight: 700; }
-.who p { margin: 2px 0 0; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.who h1 { margin: 0; font-size: 21px; line-height: 1.2; font-weight: 700; }
+.who p { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
 .dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--off); }
 .dot.on { background: var(--ok); }
-.out { flex: none; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 13px; cursor: pointer; }
+.ib { flex: none; width: 40px; height: 40px; border: 0; border-radius: 12px; display: grid; place-items: center; background: transparent; color: var(--muted); cursor: pointer; }
+.ib:hover { background: var(--bg); }
+
+.searchbar { display: flex; gap: 8px; padding: 8px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.searchbar input { flex: 1; min-width: 0; min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 16px; }
 
 .stage { position: relative; flex: 1; min-height: 0; }
 .thread { height: 100%; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 6px; padding: 16px; }
@@ -52,34 +67,54 @@ button, textarea, input { font: inherit; color: inherit; }
 .empty p { margin: 0; color: var(--muted); line-height: 1.7; font-size: 15px; }
 .day { align-self: center; margin-block: 10px 4px; padding: 3px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); font-size: 12px; }
 
-.row { display: flex; flex-direction: column; gap: 4px; max-width: 84%; min-width: 0; }
+.row { display: flex; flex-direction: column; gap: 3px; max-width: 84%; min-width: 0; }
 .row.mine { align-self: flex-start; align-items: flex-start; }
 .row.theirs { align-self: flex-end; align-items: flex-end; }
+.row.flash .bubble { outline: 3px solid var(--focus); }
+.who2 { padding-inline: 6px; font-size: 12.5px; font-weight: 600; overflow-wrap: anywhere; color: hsl(var(--h, 170) 55% var(--name-l)); }
 .bubble { padding: 8px 12px 6px; border-radius: 18px; min-width: 0; max-width: 100%; touch-action: pan-y; }
-.bubble.hasimg { padding: 4px 4px 6px; }
+.bubble.hasmedia { padding: 4px 4px 6px; }
 .mine .bubble { background: var(--mine); color: var(--mine-ink); border-end-start-radius: 6px; }
 .theirs .bubble { background: var(--theirs); color: var(--theirs-ink); border: 1px solid var(--line); border-end-end-radius: 6px; }
 .bubble.pending { opacity: 0.7; }
-.txt { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; font-size: 16px; }
+.txt { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; font-size: 16px; cursor: pointer; }
 .pic { display: block; max-width: 100%; max-height: 320px; border-radius: 14px; cursor: zoom-in; }
-.meta { display: block; margin-top: 2px; padding-inline: 8px; font-size: 11.5px; text-align: end; color: var(--muted); font-variant-numeric: tabular-nums; }
-.bubble:not(.hasimg) .meta { padding-inline: 0; }
+.aud { display: block; width: min(260px, 100%); height: 40px; }
+.quote { margin: 0 0 6px; padding: 4px 10px; border-inline-start: 3px solid currentColor; border-radius: 6px; background: rgba(127,127,127,.16); font-size: 13px; line-height: 1.5; cursor: pointer; }
+.quote b { display: block; font-size: 12px; opacity: .85; }
+.quote span { display: block; opacity: .9; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.hasmedia .quote { margin: 4px 6px 6px; }
+.meta { display: flex; justify-content: flex-end; gap: 6px; margin-top: 2px; padding-inline: 0; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; cursor: pointer; }
+.hasmedia .meta { padding-inline: 8px; }
 .mine .meta { color: var(--mine-meta); }
-.del { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--danger); font-size: 13px; cursor: pointer; }
+.rx { display: flex; flex-wrap: wrap; gap: 4px; }
+.rx button { min-height: 28px; padding: 0 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--chip); font-size: 13px; cursor: pointer; }
+.rx button.me { background: var(--chip-mine); border-color: var(--mine); }
+.readline { padding-inline: 6px; font-size: 11.5px; color: var(--muted); }
 
 .jump { position: absolute; inset-inline: 0; bottom: 12px; margin-inline: auto; width: max-content; display: flex; align-items: center; gap: 6px; padding: 8px 14px; border: 0; border-radius: 999px; background: var(--mine); color: var(--mine-ink); font-size: 13px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,.25); }
 .notice { padding: 10px 16px; background: var(--surface); border-top: 1px solid var(--line); color: var(--danger); font-size: 13px; line-height: 1.6; }
+.typing { padding: 4px 16px; font-size: 12.5px; color: var(--muted); background: var(--bg); }
+.ctxbar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--surface); border-top: 1px solid var(--line); font-size: 13px; }
+.ctxbar div { flex: 1; min-width: 0; border-inline-start: 3px solid var(--mine); padding-inline-start: 8px; }
+.ctxbar b { display: block; font-size: 12px; color: var(--muted); }
+.ctxbar span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .composer { display: flex; align-items: flex-end; gap: 8px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line); }
 .composer textarea { flex: 1; min-width: 0; max-height: 140px; resize: none; padding: 10px 14px; border: 1px solid var(--line); border-radius: 20px; background: var(--bg); line-height: 1.5; font-size: 16px; }
 .composer textarea::placeholder { color: var(--muted); }
 .circle { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
 .send { background: var(--mine); color: var(--mine-ink); }
-.attach { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.alt { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
 .circle:disabled { background: var(--send-off); color: var(--muted); cursor: default; }
+.recbar { display: flex; align-items: center; gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line); }
+.recbar .t { flex: 1; display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.recbar .rd { width: 10px; height: 10px; border-radius: 50%; background: var(--danger); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .recbar .rd { animation: none; } }
 
-.lock { height: 100%; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 24px 16px; max-width: 400px; margin-inline: auto; }
-.lock h2 { margin: 0; font-size: 24px; font-weight: 700; }
+.lock { height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 24px 16px; max-width: 400px; margin-inline: auto; }
+.lock h2 { margin: auto 0 0; font-size: 24px; font-weight: 700; }
 .lock p { margin: 0; color: var(--muted); line-height: 1.7; font-size: 15px; }
 .lock label.f { font-size: 13px; color: var(--muted); }
 .lock input[type="text"], .lock input[type="password"] { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); font-size: 18px; }
@@ -87,11 +122,22 @@ button, textarea, input { font: inherit; color: inherit; }
 .lock .rem input { width: 20px; height: 20px; }
 .lock .go { min-height: 48px; border: 0; border-radius: 14px; background: var(--mine); color: var(--mine-ink); font-weight: 600; cursor: pointer; }
 .lock .go:disabled { background: var(--send-off); color: var(--muted); cursor: default; }
-.lock .err { color: var(--danger); min-height: 1.7em; }
+.lock .err { color: var(--danger); min-height: 1.7em; margin-bottom: auto; }
+.rooms { display: flex; flex-wrap: wrap; gap: 6px; }
+.rooms button { min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 14px; cursor: pointer; }
 
-.lightbox { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: rgba(0,0,0,.92); padding: 16px; }
+.lightbox { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(0,0,0,.92); padding: 16px; }
 .lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; }
 .lightbox button { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); inset-inline-start: 12px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: #fff; color: #000; cursor: pointer; }
+
+.sheetwrap { position: fixed; inset: 0; z-index: 15; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,.45); }
+.sheet { width: 100%; max-width: 720px; max-height: 80%; overflow-y: auto; padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.sheet h3 { margin: 4px 0 6px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.sheetbtn { min-height: 48px; padding: 0 14px; border: 0; border-radius: 12px; background: var(--bg); text-align: start; font-size: 16px; cursor: pointer; }
+.sheetbtn.danger { color: var(--danger); }
+.emojis { display: flex; justify-content: space-between; gap: 4px; }
+.emojis button { flex: 1; min-height: 48px; border: 0; border-radius: 12px; background: var(--bg); font-size: 24px; cursor: pointer; }
+.emojis button.me { background: var(--chip-mine); }
 
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
@@ -105,15 +151,29 @@ button, textarea, input { font: inherit; color: inherit; }
     </div>
     <div class="who"><h1>بيناتنا</h1><p id="status">جاري الاتصال…</p></div>
     <span id="dot" class="dot" aria-hidden="true"></span>
-    <button id="logout" class="out" type="button" hidden>خروج</button>
+    <button id="searchBtn" class="ib" type="button" aria-label="بحث" hidden>
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+    </button>
+    <button id="menuBtn" class="ib" type="button" aria-label="القائمة" hidden>
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+    </button>
   </header>
+
+  <div id="searchbar" class="searchbar" hidden>
+    <label for="q" class="sr">بحث بالمحادثة</label>
+    <input id="q" type="text" placeholder="ابحث بالرسائل أو بالأسماء" autocomplete="off">
+    <button id="qClose" class="ib" type="button" aria-label="إغلاق البحث">✕</button>
+  </div>
 
   <div class="stage">
     <form id="lock" class="lock" hidden autocomplete="off">
       <h2>ادخل الغرفة</h2>
-      <p>اتفق مع الطرف الثاني على اسم غرفة وكلمة سر. نفس الاثنين لازم يكونون عند الطرفين. الرسائل والصور تتشفّر على جهازك قبل ما تنرسل، وكلمة السر ما تنرسل لأي مكان.</p>
+      <p>اتفق مع الباقين على اسم غرفة وكلمة سر. الرسائل والصور والأصوات تتشفّر على جهازك قبل ما تنرسل، وكلمة السر ما تنرسل لأي مكان.</p>
+      <label class="f" for="uname">اسمك (يظهر للباقين فوق رسائلك)</label>
+      <input id="uname" type="text" maxlength="24" autocomplete="off" spellcheck="false">
       <label class="f" for="room">اسم الغرفة</label>
       <input id="room" type="text" dir="ltr" autocapitalize="none" autocomplete="off" spellcheck="false">
+      <div id="roomChips" class="rooms" hidden></div>
       <label class="f" for="pw">كلمة السر</label>
       <input id="pw" type="password" dir="ltr" autocomplete="off">
       <label class="rem"><input id="remember" type="checkbox"> تذكرني على هذا الجهاز</label>
@@ -124,12 +184,20 @@ button, textarea, input { font: inherit; color: inherit; }
     <button id="jump" class="jump" type="button" hidden>رسالة جديدة ↓</button>
   </div>
 
+  <div id="typing" class="typing" hidden></div>
   <div id="notice" class="notice" role="status" hidden></div>
+  <div id="ctxbar" class="ctxbar" hidden>
+    <div><b id="ctxTitle"></b><span id="ctxText"></span></div>
+    <button id="ctxClose" class="ib" type="button" aria-label="إلغاء">✕</button>
+  </div>
 
   <form id="composer" class="composer" hidden>
     <input id="file" type="file" accept="image/*" hidden>
-    <button id="attach" class="circle attach" type="button" aria-label="إرسال صورة">
+    <button id="attach" class="circle alt" type="button" aria-label="إرسال صورة">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 9"/></svg>
+    </button>
+    <button id="mic" class="circle alt" type="button" aria-label="تسجيل رسالة صوتية">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
     </button>
     <label for="msg" class="sr">اكتب رسالتك</label>
     <textarea id="msg" rows="1" maxlength="2000" placeholder="اكتب رسالتك…"></textarea>
@@ -137,6 +205,18 @@ button, textarea, input { font: inherit; color: inherit; }
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
     </button>
   </form>
+
+  <div id="recbar" class="recbar" hidden>
+    <button id="recCancel" class="circle alt" type="button" aria-label="إلغاء التسجيل">✕</button>
+    <div class="t"><span class="rd" aria-hidden="true"></span><span id="recTime">0:00</span></div>
+    <button id="recSend" class="circle send" type="button" aria-label="إرسال التسجيل">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+    </button>
+  </div>
+</div>
+
+<div id="sheetwrap" class="sheetwrap" hidden>
+  <div class="sheet" role="dialog" aria-modal="true"><h3 id="sheetTitle"></h3><div id="sheetList" style="display:flex;flex-direction:column;gap:6px"></div></div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -155,18 +235,29 @@ window.FIREBASE_CONFIG = {
   const $ = (id) => document.getElementById(id);
   const thread = $('thread'), statusEl = $('status'), dot = $('dot'), jump = $('jump');
   const notice = $('notice'), form = $('composer'), ta = $('msg'), sendBtn = $('send');
-  const lockForm = $('lock'), roomIn = $('room'), pwIn = $('pw'), remember = $('remember');
-  const lockErr = $('lockErr'), unlockBtn = $('unlock'), logoutBtn = $('logout');
-  const fileIn = $('file'), attachBtn = $('attach');
+  const lockForm = $('lock'), roomIn = $('room'), pwIn = $('pw'), nameIn = $('uname'), remember = $('remember');
+  const lockErr = $('lockErr'), unlockBtn = $('unlock');
+  const fileIn = $('file'), attachBtn = $('attach'), micBtn = $('mic');
+  const searchBtn = $('searchBtn'), menuBtn = $('menuBtn'), searchbar = $('searchbar'), qIn = $('q');
+  const typingEl = $('typing'), ctxbar = $('ctxbar'), recbar = $('recbar');
+  const sheetwrap = $('sheetwrap'), sheetList = $('sheetList'), sheetTitle = $('sheetTitle');
 
+  const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
   const st = {
-    fs: null, uid: null, roomId: null, key: null, unsub: null,
-    raw: [], cache: new Map(), snapReady: false, msgs: [],
-    selected: null, confirm: null, loaded: false, stick: true, busy: false
+    fs: null, uid: null, myName: '', roomId: null, roomName: '', key: null, unsubs: [],
+    msgDocs: [], reactDocs: [], reads: {}, typing: {}, payloads: new Map(), decCache: new Map(),
+    msgs: [], loaded: false, stick: true, busy: false, ctx: null, query: '',
+    exp: 0, sound: true, unread: 0, seen: new Set(), deleting: new Set(), lastReadSent: 0, typingSent: 0,
+    reactMap: new Map(), snapReady: false, typingReady: false
   };
+
+  const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  const lsDel = (k) => { try { localStorage.removeItem(k); } catch (e) {} };
 
   const fmtTime = new Intl.DateTimeFormat('ar-IQ-u-nu-latn', { hour: 'numeric', minute: '2-digit' });
   const fmtDay = new Intl.DateTimeFormat('ar-IQ-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' });
+  const fmtFull = new Intl.DateTimeFormat('ar-IQ-u-nu-latn', { dateStyle: 'short', timeStyle: 'short' });
 
   function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
   function dayLabel(ts) {
@@ -175,7 +266,8 @@ window.FIREBASE_CONFIG = {
     if (d.toDateString() === y.toDateString()) return 'أمس';
     return fmtDay.format(d);
   }
-  function nearBottom() { return thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80; }
+  const nearBottom = () => thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80;
+  const hueOf = (name) => { let h = 0; for (const ch of name) h = (h * 31 + ch.codePointAt(0)) % 360; return h; };
 
   let noticeTimer = 0;
   function toast(text) {
@@ -185,12 +277,20 @@ window.FIREBASE_CONFIG = {
   }
   function errText(e) {
     const c = e && e.code;
-    if (c === 'permission-denied') return 'ما انسمح بالعملية. تأكد من قواعد Firestore ومن تفعيل الدخول المجهول.';
+    if (c === 'permission-denied') return 'ما انسمح بالعملية. تأكد إنك حدّثت قواعد Firestore للنسخة الجديدة.';
     if (c === 'unavailable') return 'ما في اتصال بالإنترنت. جرّب بعد شوي.';
     if (c === 'resource-exhausted') return 'انتهت حصة الاستخدام المجانية اليوم. جرّب باجر.';
     if (c === 'auth/operation-not-allowed' || c === 'auth/admin-restricted-operation') return 'فعّل الدخول المجهول (Anonymous) من Authentication في Firebase.';
     return 'صارت مشكلة. جرّب مرة ثانية.';
   }
+
+  /* ---------- theme ---------- */
+  function applyTheme(t) {
+    const r = document.documentElement;
+    if (t === 'light' || t === 'dark') r.setAttribute('data-theme', t); else r.removeAttribute('data-theme');
+  }
+  let theme = lsGet('bainatna-theme', 'auto');
+  applyTheme(theme);
 
   /* ---------- crypto ---------- */
   const enc8 = new TextEncoder(), dec8 = new TextDecoder();
@@ -202,24 +302,40 @@ window.FIREBASE_CONFIG = {
   }
   async function deriveKey(pw, room) {
     const base = await crypto.subtle.importKey('raw', enc8.encode(pw), 'PBKDF2', false, ['deriveKey']);
-    return crypto.subtle.deriveKey(
-      { name: 'PBKDF2', salt: enc8.encode('bainatna-v2|' + room), iterations: 600000, hash: 'SHA-256' },
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: enc8.encode('bainatna-v2|' + room), iterations: 600000, hash: 'SHA-256' },
       base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
   }
-  async function encrypt(key, text) {
+  async function encObj(key, obj) {
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc8.encode(text));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc8.encode(JSON.stringify(obj)));
     return { iv: b64(iv), ct: b64(ct) };
   }
-  async function decrypt(key, iv, ct) {
-    return dec8.decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(iv) }, key, unb64(ct)));
+  async function decObj(key, iv, ct) {
+    return JSON.parse(dec8.decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(iv) }, key, unb64(ct))));
+  }
+  async function decCached(key, id, d) {
+    const ck = id + '|' + d.iv;
+    if (st.decCache.has(ck)) return st.decCache.get(ck);
+    let o = null;
+    try { o = await decObj(key, d.iv, d.ct); } catch (e) { o = null; }
+    st.decCache.set(ck, o);
+    return o;
   }
 
-  /* ---------- rendering ---------- */
-  function emptyState(title, body) {
-    const box = el('div', 'empty'); box.appendChild(el('h2', null, title));
-    if (body) box.appendChild(el('p', null, body)); return box;
+  /* ---------- sheet / lightbox ---------- */
+  function closeSheet() { sheetwrap.hidden = true; sheetList.textContent = ''; }
+  function openSheet(title, items) {
+    sheetTitle.textContent = title; sheetList.textContent = '';
+    for (const it of items) {
+      if (it.node) { sheetList.appendChild(it.node); continue; }
+      const b = el('button', 'sheetbtn' + (it.danger ? ' danger' : ''), it.label); b.type = 'button';
+      b.addEventListener('click', () => { if (it.keep) it.onClick(b); else { closeSheet(); it.onClick(); } });
+      sheetList.appendChild(b);
+    }
+    sheetwrap.hidden = false;
   }
+  sheetwrap.addEventListener('click', (e) => { if (e.target === sheetwrap) closeSheet(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 
   function openLightbox(src) {
     const box = el('div', 'lightbox');
@@ -227,93 +343,234 @@ window.FIREBASE_CONFIG = {
     const close = el('button', null, 'إغلاق'); close.type = 'button';
     close.addEventListener('click', () => box.remove());
     box.addEventListener('click', (e) => { if (e.target === box) box.remove(); });
-    box.append(img, close);
-    document.body.appendChild(box);
-    close.focus();
+    box.append(img, close); document.body.appendChild(box); close.focus();
   }
 
-  function msgRow(m) {
-    const mine = m.from === st.uid;
-    const row = el('div', 'row ' + (mine ? 'mine' : 'theirs'));
-    const isImg = m.kind === 'i' && typeof m.value === 'string' && m.value.startsWith('data:image/jpeg;base64,');
-    const b = el('div', 'bubble' + (m.pending ? ' pending' : '') + (isImg ? ' hasimg' : ''));
-    if (isImg) {
-      const img = el('img', 'pic'); img.src = m.value; img.alt = 'صورة مرسلة'; img.loading = 'lazy';
-      img.addEventListener('click', () => { if (!b._swiped) openLightbox(m.value); });
-      b.appendChild(img);
-    } else {
-      const t = el('p', 'txt'); t.dir = 'auto'; t.textContent = String(m.value || ''); b.appendChild(t);
-    }
-    b.appendChild(el('span', 'meta', (m.ts ? fmtTime.format(m.ts) : '') + (m.pending ? ' · يرسل…' : '')));
+  /* ---------- message view ---------- */
+  const rows = new Map(), dayNodes = new Map();
+  const snippetOf = (m) => m.kind === 'i' ? 'صورة' : m.kind === 'a' ? 'رسالة صوتية' : String(m.value || '').slice(0, 80);
+  const okImg = (v) => typeof v === 'string' && v.startsWith('data:image/jpeg;base64,');
+  const okAud = (v) => typeof v === 'string' && /^data:audio\/(webm|mp4|ogg)/.test(v);
 
-    if (mine && !m.pending) {
-      let sx = 0, sy = 0;
-      b.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; b._swiped = false; }, { passive: true });
-      b.addEventListener('touchend', (e) => {
-        const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-        if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-          b._swiped = true; e.preventDefault(); select(m.id);
-        }
-      });
-      if (!isImg) {
-        b.tabIndex = 0; b.setAttribute('role', 'button');
-        b.addEventListener('click', () => { if (!b._swiped) select(m.id); });
-        b.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(m.id); } });
+  function buildRow(m) {
+    const mine = m.from === st.uid;
+    const row = el('div', 'row ' + (mine ? 'mine' : 'theirs')); row.dataset.id = m.id;
+    const parts = {};
+    if (!mine && m.name) {
+      const nl = el('span', 'who2', m.name); nl.style.setProperty('--h', String(hueOf(m.name))); row.appendChild(nl);
+    }
+    const media = (m.kind === 'i' && okImg(m.value)) || (m.kind === 'a' && okAud(m.value));
+    const b = el('div', 'bubble' + (media ? ' hasmedia' : ''));
+    parts.bubble = b;
+    if (m.reply) {
+      const q = el('div', 'quote'); q.append(el('b', null, m.reply.n || 'رسالة'), el('span', null, m.reply.t || ''));
+      q.addEventListener('click', () => scrollToMsg(m.reply.i)); b.appendChild(q);
+    }
+    if (m.kind === 'i' && okImg(m.value)) {
+      const img = el('img', 'pic'); img.src = m.value; img.alt = 'صورة مرسلة';
+      img.addEventListener('click', () => openLightbox(m.value)); b.appendChild(img);
+    } else if (m.kind === 'a' && okAud(m.value)) {
+      const a = el('audio', 'aud'); a.controls = true; a.preload = 'metadata'; a.src = m.value; b.appendChild(a);
+    } else {
+      const t = el('p', 'txt'); t.dir = 'auto'; t.textContent = String(m.value || '');
+      t.addEventListener('click', () => msgActions(m.id)); b.appendChild(t);
+    }
+    parts.meta = el('span', 'meta'); parts.meta.addEventListener('click', () => msgActions(m.id)); b.appendChild(parts.meta);
+
+    let sx = 0, sy = 0;
+    b.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+    b.addEventListener('touchend', (e) => {
+      const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) { e.preventDefault(); msgActions(m.id); }
+    });
+    row.appendChild(b);
+    parts.rx = el('div', 'rx'); row.appendChild(parts.rx);
+    parts.read = el('div', 'readline'); row.appendChild(parts.read);
+    return { el: row, parts };
+  }
+
+  function updateRow(r, m, isLastMine, readers) {
+    const mine = m.from === st.uid;
+    r.parts.bubble.classList.toggle('pending', !!m.pending);
+    let meta = m.ts ? fmtTime.format(m.ts) : '';
+    if (m.edited) meta += ' · معدّلة';
+    if (m.x) meta += ' · مؤقتة';
+    if (mine) meta += m.pending ? ' · يرسل…' : (readers.length ? ' · ✓✓' : ' · ✓');
+    r.parts.meta.textContent = meta;
+    const agg = st.reactMap.get(m.id);
+    r.parts.rx.textContent = '';
+    if (agg) {
+      for (const [emo, set] of agg) {
+        const b = el('button', set.has(st.uid) ? 'me' : '', emo + (set.size > 1 ? ' ' + set.size : '')); b.type = 'button';
+        b.setAttribute('aria-label', 'تفاعل ' + emo);
+        b.addEventListener('click', () => toggleReact(m.id, emo)); r.parts.rx.appendChild(b);
       }
     }
-    row.appendChild(b);
-    if (mine && st.selected === m.id) {
-      const del = el('button', 'del', st.confirm === m.id ? 'تأكيد الحذف' : 'حذف الرسالة');
-      del.type = 'button'; del.addEventListener('click', () => remove(m.id)); row.appendChild(del);
-    }
-    return row;
+    r.parts.read.textContent = (mine && isLastMine && readers.length) ? 'شافها: ' + readers.map((x) => x.n || 'شخص').join('، ') : '';
+    r.parts.read.hidden = !r.parts.read.textContent;
+    r.parts.rx.hidden = !r.parts.rx.childNodes.length;
+  }
+
+  function scrollToMsg(id) {
+    const r = rows.get(id);
+    if (!r) { toast('الرسالة الأصلية ما عادت موجودة.'); return; }
+    r.el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    r.el.classList.add('flash'); setTimeout(() => r.el.classList.remove('flash'), 1200);
+  }
+
+  function visibleMsgs() {
+    const q = st.query.trim().toLowerCase();
+    if (!q) return st.msgs;
+    return st.msgs.filter((m) => (m.kind === 't' && String(m.value).toLowerCase().includes(q)) || (m.name || '').toLowerCase().includes(q));
   }
 
   function render(forceBottom) {
     const top = thread.scrollTop, wasStick = st.stick;
-    thread.textContent = '';
-    if (!st.loaded) { thread.appendChild(emptyState('جاري تحميل المحادثة…', '')); return; }
-    if (!st.msgs.length) { thread.appendChild(emptyState('المحادثة فارغة', 'أول رسالة أو صورة ترسلها توصل للطرف الثاني مباشرة، وتبقى محفوظة مشفّرة.')); return; }
-    let lastDay = '';
-    for (const m of st.msgs) {
-      const k = new Date(m.ts).toDateString();
-      if (k !== lastDay) { lastDay = k; thread.appendChild(el('div', 'day', dayLabel(m.ts))); }
-      thread.appendChild(msgRow(m));
+    const list = visibleMsgs();
+    const desired = [];
+    if (!st.loaded) {
+      thread.textContent = ''; rows.clear(); dayNodes.clear();
+      const box = el('div', 'empty'); box.appendChild(el('h2', null, 'جاري تحميل المحادثة…')); thread.appendChild(box); return;
     }
+    if (!list.length) {
+      thread.textContent = ''; rows.clear(); dayNodes.clear();
+      const box = el('div', 'empty');
+      box.appendChild(el('h2', null, st.query ? 'ما لقيت شي' : 'المحادثة فارغة'));
+      box.appendChild(el('p', null, st.query ? 'جرّب كلمة ثانية.' : 'أول رسالة أو صورة أو تسجيل ترسله يوصل للباقين مباشرة، ويبقى محفوظ مشفّر.'));
+      thread.appendChild(box); return;
+    }
+    const lastMine = [...list].reverse().find((m) => m.from === st.uid && !m.pending);
+    let lastDay = '';
+    const alive = new Set();
+    for (const m of list) {
+      const dk = new Date(m.ts).toDateString();
+      if (dk !== lastDay) {
+        lastDay = dk;
+        let dn = dayNodes.get(dk); if (!dn) { dn = el('div', 'day', dayLabel(m.ts)); dayNodes.set(dk, dn); }
+        dn.textContent = dayLabel(m.ts); desired.push(dn);
+      }
+      alive.add(m.id);
+      const sig = [m.kind, m.value && m.value.length, m.value && m.value.slice(-24), m.edited ? 1 : 0, m.name, m.reply ? m.reply.i : '', m.from === st.uid ? 1 : 0].join('|');
+      let r = rows.get(m.id);
+      if (!r || r.sig !== sig) { r = buildRow(m); r.sig = sig; rows.set(m.id, r); }
+      const readers = Object.keys(st.reads).filter((u) => u !== st.uid && st.reads[u].t >= m.ts).map((u) => st.reads[u]);
+      updateRow(r, m, lastMine && lastMine.id === m.id, readers);
+      desired.push(r.el);
+    }
+    for (const id of [...rows.keys()]) if (!alive.has(id)) rows.delete(id);
+    // stale empty-state nodes
+    for (const c of [...thread.children]) if (c.classList.contains('empty')) c.remove();
+    let ref = thread.firstChild;
+    for (const n of desired) {
+      if (ref === n) ref = ref.nextSibling; else thread.insertBefore(n, ref);
+    }
+    while (ref) { const nx = ref.nextSibling; thread.removeChild(ref); ref = nx; }
+    for (const [k, n] of [...dayNodes]) if (!desired.includes(n)) dayNodes.delete(k);
     if (forceBottom || wasStick) thread.scrollTop = thread.scrollHeight; else thread.scrollTop = top;
   }
 
-  function updateComposer() {
-    sendBtn.disabled = !st.key || st.busy || !ta.value.trim();
-    attachBtn.disabled = !st.key || st.busy;
+  /* ---------- data paths ---------- */
+  const room = () => st.fs.collection('rooms').doc(st.roomId);
+  const msgsCol = () => room().collection('messages');
+
+  /* ---------- rebuild ---------- */
+  async function rebuild() {
+    if (!st.key || !st.snapReady) return;
+    const key = st.key, out = [], now = Date.now();
+    for (const d of st.msgDocs) {
+      const o = await decCached(key, d.id, d);
+      const p = o || { k: 't', v: 'رسالة مشفّرة ما انفكّت. تأكد إن كلمة السر نفسها عند الطرفين.', n: '' };
+      st.payloads.set(d.id, p);
+      const x = typeof p.x === 'number' ? p.x : 0;
+      if (x && x < now) {
+        if (d.from === st.uid && !st.deleting.has(d.id)) { st.deleting.add(d.id); msgsCol().doc(d.id).delete().catch(() => {}); }
+        continue;
+      }
+      out.push({ id: d.id, from: d.from, kind: p.k, value: p.v, name: typeof p.n === 'string' ? p.n.slice(0, 24) : '',
+        reply: p.r && typeof p.r === 'object' ? { i: String(p.r.i || ''), n: String(p.r.n || '').slice(0, 24), t: String(p.r.t || '').slice(0, 80) } : null,
+        edited: !!p.e, x, ts: d.ts, pending: d.pending });
+    }
+    if (key !== st.key) return;
+    const prevLast = st.msgs.length ? st.msgs[st.msgs.length - 1].id : null;
+    const hadData = st.loaded;
+    st.msgs = out; st.loaded = true; dot.classList.add('on');
+    const last = out[out.length - 1];
+    const isNew = !!(last && last.id !== prevLast && hadData), fromMe = !!(last && last.from === st.uid);
+    if (hadData) {
+      const fresh = out.filter((m) => !st.seen.has(m.id) && m.from !== st.uid);
+      if (fresh.length) { beep(); if (document.hidden) { st.unread += fresh.length; updateTitle(); } }
+    }
+    out.forEach((m) => st.seen.add(m.id));
+    render(isNew && fromMe);
+    if (isNew && !fromMe && !st.stick) jump.hidden = false;
+    updateStatus(); scheduleRead();
   }
-  function autosize() { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 140) + 'px'; }
 
-  function select(id) {
-    st.selected = st.selected === id ? null : id; st.confirm = null; render(false);
+  async function rebuildReacts() {
+    if (!st.key) return;
+    const key = st.key, map = new Map();
+    for (const d of st.reactDocs) {
+      const o = await decCached(key, d.id, d);
+      if (!o || typeof o.m !== 'string' || !EMOJIS.includes(o.e)) continue;
+      const uid = d.id.slice(d.id.lastIndexOf('_') + 1);
+      if (!map.has(o.m)) map.set(o.m, new Map());
+      const em = map.get(o.m); if (!em.has(o.e)) em.set(o.e, new Set()); em.get(o.e).add(uid);
+    }
+    if (key !== st.key) return;
+    st.reactMap = map; render(false);
   }
 
-  /* ---------- data ---------- */
-  const msgsCol = () => st.fs.collection('rooms').doc(st.roomId).collection('messages');
-  const checkDoc = () => st.fs.collection('rooms').doc(st.roomId).collection('meta').doc('check');
-
-  async function remove(id) {
-    if (st.confirm !== id) { st.confirm = id; render(false); return; }
-    try { await msgsCol().doc(id).delete(); st.selected = null; st.confirm = null; }
-    catch (e) { toast(errText(e)); }
+  async function rebuildReads() {
+    if (!st.key) return;
+    const key = st.key, rd = {};
+    for (const d of st.readDocs || []) {
+      const o = await decCached(key, 'r' + d.id, d);
+      if (o && typeof o.t === 'number') rd[d.id] = { t: o.t, n: typeof o.n === 'string' ? o.n.slice(0, 24) : '' };
+    }
+    if (key !== st.key) return;
+    st.reads = rd; render(false);
   }
 
-  async function sendPayload(obj) {
-    const enc = await encrypt(st.key, JSON.stringify(obj));
-    await msgsCol().add({ from: st.uid, iv: enc.iv, ct: enc.ct, ts: Date.now() });
+  function updateStatus() {
+    const names = new Set();
+    st.msgs.forEach((m) => { if (m.from !== st.uid && m.name) names.add(m.name); });
+    let s = 'الغرفة: ' + st.roomName;
+    if (names.size) { const arr = [...names]; s += ' · معك: ' + arr.slice(0, 3).join('، ') + (arr.length > 3 ? ' و' + (arr.length - 3) + ' غيرهم' : ''); }
+    if (st.exp) s += ' · الرسائل تختفي بعد ' + expLabel(st.exp);
+    statusEl.textContent = s;
+  }
+  const expLabel = (s) => s === 3600 ? 'ساعة' : s === 86400 ? 'يوم' : s === 604800 ? 'أسبوع' : s + ' ثانية';
+
+  /* ---------- sending ---------- */
+  async function sendObj(obj) {
+    const p = Object.assign({ n: st.myName }, obj);
+    if (st.ctx && st.ctx.type === 'reply') {
+      const m = st.msgs.find((x) => x.id === st.ctx.id);
+      if (m) p.r = { i: m.id, n: m.name || (m.from === st.uid ? st.myName : ''), t: snippetOf(m) };
+    }
+    if (st.exp) p.x = Date.now() + st.exp * 1000;
+    const e = await encObj(st.key, p);
+    await msgsCol().add({ from: st.uid, iv: e.iv, ct: e.ct, ts: Date.now() });
   }
 
   async function sendText() {
     const text = ta.value.trim();
     if (!text || !st.key) return;
+    if (st.ctx && st.ctx.type === 'edit') return saveEdit(text);
     ta.value = ''; autosize(); updateComposer(); st.stick = true;
-    try { await sendPayload({ k: 't', v: text.slice(0, 2000) }); }
+    try { await sendObj({ k: 't', v: text.slice(0, 2000) }); clearCtx(); }
     catch (e) { ta.value = text + (ta.value ? '\n' + ta.value : ''); autosize(); updateComposer(); toast(errText(e)); }
+  }
+
+  async function saveEdit(text) {
+    const id = st.ctx.id, orig = st.payloads.get(id);
+    if (!orig) { clearCtx(); return; }
+    ta.value = ''; autosize(); updateComposer();
+    try {
+      const e = await encObj(st.key, Object.assign({}, orig, { v: text.slice(0, 2000), e: 1 }));
+      await msgsCol().doc(id).update({ iv: e.iv, ct: e.ct });
+      clearCtx();
+    } catch (err) { ta.value = text; autosize(); updateComposer(); toast(errText(err)); }
   }
 
   async function compress(file) {
@@ -322,9 +579,7 @@ window.FIREBASE_CONFIG = {
     catch (e) {
       bmp = await new Promise((res, rej) => {
         const u = URL.createObjectURL(file), im = new Image();
-        im.onload = () => { URL.revokeObjectURL(u); res(im); };
-        im.onerror = () => rej(new Error('bad image'));
-        im.src = u;
+        im.onload = () => { URL.revokeObjectURL(u); res(im); }; im.onerror = () => rej(new Error('bad')); im.src = u;
       });
     }
     const w0 = bmp.width || bmp.naturalWidth, h0 = bmp.height || bmp.naturalHeight;
@@ -333,166 +588,74 @@ window.FIREBASE_CONFIG = {
       const s = Math.min(1, max / Math.max(w0, h0));
       const c = document.createElement('canvas');
       c.width = Math.max(1, Math.round(w0 * s)); c.height = Math.max(1, Math.round(h0 * s));
-      const g = c.getContext('2d');
-      g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
-      g.drawImage(bmp, 0, 0, c.width, c.height);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(bmp, 0, 0, c.width, c.height);
       const url = c.toDataURL('image/jpeg', q);
       if (url.length < 450000) return url;
       max *= 0.8; q = Math.max(0.5, q - 0.06);
     }
-    throw new Error('too big');
+    throw new Error('big');
   }
 
   async function sendImage(file) {
     if (!file || !st.key) return;
     if (!/^image\//.test(file.type)) { toast('اختر صورة بس.'); return; }
+    st.busy = true; updateComposer(); st.stick = true; toast('جاري تجهيز الصورة…');
+    try { const url = await compress(file); await sendObj({ k: 'i', v: url }); clearCtx(); notice.hidden = true; }
+    catch (e) { toast(e && e.message === 'big' ? 'الصورة كبيرة مرة. جرّب صورة ثانية.' : errText(e)); }
+    finally { st.busy = false; updateComposer(); }
+  }
+
+  /* ---------- voice ---------- */
+  let rec = null, recChunks = [], recStream = null, recTimer = 0, recStart = 0, recCancel = false;
+  const blobToUrl = (blob) => new Promise((res, rej) => { const f = new FileReader(); f.onload = () => res(f.result); f.onerror = rej; f.readAsDataURL(blob); });
+  async function startRec() {
+    if (!navigator.mediaDevices || !window.MediaRecorder) { toast('المتصفح ما يدعم التسجيل الصوتي.'); return; }
+    try { recStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch (e) { toast('ما انسمح باستخدام المايك. فعّل الإذن للموقع من إعدادات المتصفح.'); return; }
+    const mimes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+    const mime = mimes.find((m) => MediaRecorder.isTypeSupported(m)) || '';
+    recChunks = []; recCancel = false;
+    rec = new MediaRecorder(recStream, mime ? { mimeType: mime, audioBitsPerSecond: 24000 } : { audioBitsPerSecond: 24000 });
+    rec.ondataavailable = (e) => { if (e.data && e.data.size) recChunks.push(e.data); };
+    rec.onstop = onRecStop;
+    rec.start(); recStart = Date.now();
+    form.hidden = true; recbar.hidden = false; $('recTime').textContent = '0:00';
+    recTimer = setInterval(() => {
+      const s = Math.floor((Date.now() - recStart) / 1000);
+      $('recTime').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+      if (s >= 45) finishRec(true);
+    }, 250);
+  }
+  function finishRec(send) { recCancel = !send; if (rec && rec.state !== 'inactive') rec.stop(); }
+  async function onRecStop() {
+    clearInterval(recTimer);
+    if (recStream) recStream.getTracks().forEach((t) => t.stop());
+    recbar.hidden = true; form.hidden = false;
+    if (recCancel) return;
+    const secs = Math.round((Date.now() - recStart) / 1000);
+    const blob = new Blob(recChunks, { type: (rec && rec.mimeType) || 'audio/webm' });
+    if (blob.size < 1200) { toast('التسجيل قصير مرة.'); return; }
     st.busy = true; updateComposer(); st.stick = true;
-    toast('جاري تجهيز الصورة…');
     try {
-      const url = await compress(file);
-      await sendPayload({ k: 'i', v: url });
-      notice.hidden = true;
-    } catch (e) {
-      toast(e && e.message === 'too big' ? 'الصورة كبيرة مرة. جرّب صورة ثانية.' : errText(e));
-    } finally { st.busy = false; updateComposer(); }
+      const url = await blobToUrl(blob);
+      if (url.length > 600000) { toast('التسجيل طويل. قصّره.'); return; }
+      await sendObj({ k: 'a', v: url, d: secs }); clearCtx();
+    } catch (e) { toast(errText(e)); }
+    finally { st.busy = false; updateComposer(); }
   }
 
-  async function rebuild() {
-    if (!st.key || !st.snapReady) return;
-    const key = st.key, out = [];
-    for (const r of st.raw) {
-      let p = st.cache.get(r.id);
-      if (!p) {
-        try { const o = JSON.parse(await decrypt(key, r.iv, r.ct)); p = { kind: o.k, value: o.v }; }
-        catch (e) { p = { kind: 't', value: 'رسالة مشفّرة ما انفكّت. تأكد إن كلمة السر نفسها عند الطرفين.' }; }
-        st.cache.set(r.id, p);
-      }
-      out.push({ id: r.id, from: r.from, kind: p.kind, value: p.value, ts: r.ts, pending: r.pending });
+  /* ---------- actions ---------- */
+  function setCtx(ctx) {
+    st.ctx = ctx; ctxbar.hidden = !ctx;
+    if (ctx) {
+      const m = st.msgs.find((x) => x.id === ctx.id);
+      $('ctxTitle').textContent = ctx.type === 'edit' ? 'تعديل الرسالة' : 'رد على ' + ((m && (m.name || (m.from === st.uid ? 'نفسك' : 'رسالة'))) || 'رسالة');
+      $('ctxText').textContent = m ? snippetOf(m) : '';
     }
-    if (key !== st.key) return;
-    const prevLast = st.msgs.length ? st.msgs[st.msgs.length - 1].id : null;
-    const hadData = st.loaded;
-    st.msgs = out; st.loaded = true; dot.classList.add('on');
-    const last = out[out.length - 1];
-    const isNew = !!(last && last.id !== prevLast && hadData), fromMe = !!(last && last.from === st.uid);
-    render(isNew && fromMe);
-    if (isNew && !fromMe && !st.stick) jump.hidden = false;
-    statusEl.textContent = 'الغرفة: ' + (st.roomName || '');
   }
+  function clearCtx() { if (st.ctx && st.ctx.type === 'edit') { ta.value = ''; autosize(); } setCtx(null); updateComposer(); }
+  $('ctxClose').addEventListener('click', clearCtx);
 
-  function startListening() {
-    if (st.unsub) st.unsub();
-    st.snapReady = false; st.raw = []; st.msgs = []; st.loaded = false; st.cache.clear();
-    render(false);
-    st.unsub = msgsCol().orderBy('ts', 'desc').limit(150).onSnapshot(
-      (snap) => {
-        st.raw = snap.docs.map((d) => {
-          const x = d.data({ serverTimestamps: 'estimate' }) || {};
-          return { id: d.id, from: x.from || '', iv: String(x.iv || ''), ct: String(x.ct || ''), ts: Number(x.ts) || 0, pending: d.metadata.hasPendingWrites };
-        }).reverse();
-        st.snapReady = true; rebuild();
-      },
-      (err) => { dot.classList.remove('on'); toast(errText(err)); }
-    );
-  }
-
-  /* ---------- unlock ---------- */
-  function showLock() {
-    lockForm.hidden = false; thread.hidden = true; form.hidden = true; logoutBtn.hidden = true;
-    statusEl.textContent = 'ادخل الغرفة';
-  }
-  function showChat() {
-    lockForm.hidden = true; thread.hidden = false; form.hidden = false; logoutBtn.hidden = false;
-  }
-
-  async function enter(roomName, pw) {
-    const room = roomName.trim().toLowerCase();
-    if (!room || !pw) throw Object.assign(new Error('empty'), { code: 'empty' });
-    const key = await deriveKey(pw, room);
-    st.roomId = (await sha256hex('bainatna-room|' + room)).slice(0, 40);
-    st.roomName = roomName.trim();
-    const ref = checkDoc();
-    const snap = await ref.get();
-    if (snap.exists) {
-      const d = snap.data() || {};
-      try { if ((await decrypt(key, d.iv, d.ct)) !== 'bainatna-ok') return false; } catch (e) { return false; }
-    } else {
-      const e2 = await encrypt(key, 'bainatna-ok');
-      await ref.set({ iv: e2.iv, ct: e2.ct });
-    }
-    st.key = key;
-    return true;
-  }
-
-  function afterEnter() {
-    showChat(); updateComposer(); startListening();
-  }
-
-  lockForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!st.uid) { lockErr.textContent = 'ما اتصلت بالخدمة بعد. انتظر ثانية وجرّب.'; return; }
-    const r = roomIn.value, p = pwIn.value;
-    if (!r.trim() || !p) { lockErr.textContent = 'اكتب اسم الغرفة وكلمة السر.'; return; }
-    unlockBtn.disabled = true; lockErr.textContent = 'جاري التحقق…';
-    try {
-      const ok = await enter(r, p);
-      if (!ok) { lockErr.textContent = 'كلمة السر غلط لهذي الغرفة.'; return; }
-      lockErr.textContent = '';
-      try {
-        if (remember.checked) localStorage.setItem('bainatna', JSON.stringify({ r, p }));
-        else localStorage.removeItem('bainatna');
-      } catch (x) {}
-      pwIn.value = '';
-      afterEnter();
-    } catch (err) { lockErr.textContent = errText(err); }
-    finally { unlockBtn.disabled = false; }
-  });
-
-  logoutBtn.addEventListener('click', () => {
-    if (st.unsub) st.unsub(); st.unsub = null;
-    st.key = null; st.cache.clear(); st.msgs = []; st.raw = []; st.selected = null; st.confirm = null;
-    try { localStorage.removeItem('bainatna'); } catch (x) {}
-    dot.classList.remove('on'); showLock(); updateComposer();
-  });
-
-  thread.addEventListener('scroll', () => { st.stick = nearBottom(); if (st.stick) jump.hidden = true; });
-  jump.addEventListener('click', () => { thread.scrollTop = thread.scrollHeight; jump.hidden = true; });
-  form.addEventListener('submit', (e) => { e.preventDefault(); sendText(); });
-  ta.addEventListener('input', () => { autosize(); updateComposer(); });
-  attachBtn.addEventListener('click', () => fileIn.click());
-  fileIn.addEventListener('change', () => { const f = fileIn.files && fileIn.files[0]; fileIn.value = ''; sendImage(f); });
-  const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-  ta.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey && !coarse && !e.isComposing) { e.preventDefault(); sendText(); }
-  });
-
-  /* ---------- boot ---------- */
-  showLock();
-  const cfg = window.FIREBASE_CONFIG;
-  if (!cfg || !cfg.apiKey || /PASTE/i.test(JSON.stringify(cfg))) {
-    lockErr.textContent = 'لازم تلصق إعدادات Firebase داخل ملف config.js أول.';
-    unlockBtn.disabled = true; dot.classList.remove('on'); return;
-  }
-  if (!window.firebase) { lockErr.textContent = 'ما انحمّلت مكتبة Firebase. تأكد من الإنترنت.'; unlockBtn.disabled = true; return; }
-
-  firebase.initializeApp(cfg);
-  st.fs = firebase.firestore();
-  unlockBtn.disabled = true;
-  firebase.auth().onAuthStateChanged(async (u) => {
-    if (!u) return;
-    st.uid = u.uid; unlockBtn.disabled = false;
-    if (statusEl.textContent === 'جاري الاتصال…' || lockForm.hidden === false) statusEl.textContent = 'ادخل الغرفة';
-    if (st.key) return;
-    let saved = null;
-    try { saved = JSON.parse(localStorage.getItem('bainatna') || 'null'); } catch (x) {}
-    if (saved && saved.r && saved.p) {
-      remember.checked = true; roomIn.value = saved.r;
-      try { if (await enter(saved.r, saved.p)) afterEnter(); } catch (x) {}
-    }
-  });
-  firebase.auth().signInAnonymously().catch((e) => { lockErr.textContent = errText(e); });
-
-})();
-</script>
-</body>
-</html>
+  async function toggleReact(msgId, emo) {
+    const rid = msgId + '_' + st.uid;
+    const mineNow = s
