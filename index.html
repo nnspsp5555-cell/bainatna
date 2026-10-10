@@ -219,9 +219,6 @@ button, textarea, input { font: inherit; color: inherit; }
   <div class="sheet" role="dialog" aria-modal="true"><h3 id="sheetTitle"></h3><div id="sheetList" style="display:flex;flex-direction:column;gap:6px"></div></div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyDaHViGZuIIbNwBHoP-x5onZdHLBI_zP8o",
@@ -255,9 +252,10 @@ window.FIREBASE_CONFIG = {
   const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   const lsDel = (k) => { try { localStorage.removeItem(k); } catch (e) {} };
 
-  const fmtTime = new Intl.DateTimeFormat('ar-IQ-u-nu-latn', { hour: 'numeric', minute: '2-digit' });
-  const fmtDay = new Intl.DateTimeFormat('ar-IQ-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' });
-  const fmtFull = new Intl.DateTimeFormat('ar-IQ-u-nu-latn', { dateStyle: 'short', timeStyle: 'short' });
+  const mkFmt = (o) => { try { return new Intl.DateTimeFormat('ar-IQ-u-nu-latn', o); } catch (e) { try { return new Intl.DateTimeFormat(undefined, o); } catch (e2) { return { format: (d) => new Date(d).toLocaleString() }; } } };
+  const fmtTime = mkFmt({ hour: 'numeric', minute: '2-digit' });
+  const fmtDay = mkFmt({ weekday: 'long', day: 'numeric', month: 'long' });
+  const fmtFull = mkFmt({ dateStyle: 'short', timeStyle: 'short' });
 
   function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
   function dayLabel(ts) {
@@ -658,4 +656,6 @@ window.FIREBASE_CONFIG = {
 
   async function toggleReact(msgId, emo) {
     const rid = msgId + '_' + st.uid;
-    const mineNow = s
+    const mineNow = st.reactMap.get(msgId) && st.reactMap.get(msgId).get(emo) && st.reactMap.get(msgId).get(emo).has(st.uid);
+    try {
+      if (mineNow) await room().collection('
