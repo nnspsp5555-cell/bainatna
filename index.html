@@ -149,7 +149,7 @@ button, textarea, input { font: inherit; color: inherit; }
     <div class="mark" aria-hidden="true">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
     </div>
-    <div class="who"><h1>بيناتنا</h1><p id="status">جاري الاتصال…</p></div>
+    <div class="who"><h1>بيناتنا</h1><p id="status">جاري التحميل… (3.2)</p></div>
     <span id="dot" class="dot" aria-hidden="true"></span>
     <button id="searchBtn" class="ib" type="button" aria-label="بحث" hidden>
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
@@ -226,6 +226,12 @@ window.FIREBASE_CONFIG = {
   projectId: "hason-d5f11",
   appId: "1:336392688213:web:0394a77e2c962d2af1badc"
 };
+</script>
+<script>
+window.addEventListener('error', function (e) {
+  var s = document.getElementById('status');
+  if (s) s.textContent = 'خطأ: ' + (e.message || '؟') + ' @' + (e.lineno || '');
+});
 </script>
 <script>
 (function () {
@@ -658,4 +664,278 @@ window.FIREBASE_CONFIG = {
     const rid = msgId + '_' + st.uid;
     const mineNow = st.reactMap.get(msgId) && st.reactMap.get(msgId).get(emo) && st.reactMap.get(msgId).get(emo).has(st.uid);
     try {
-      if (mineNow) await room().collection('
+      if (mineNow) await room().collection('reacts').doc(rid).delete();
+      else { const e = await encObj(st.key, { m: msgId, e: emo, n: st.myName }); await room().collection('reacts').doc(rid).set({ iv: e.iv, ct: e.ct }); }
+    } catch (e) { toast(errText(e)); }
+  }
+
+  function msgActions(id) {
+    const m = st.msgs.find((x) => x.id === id); if (!m) return;
+    const mine = m.from === st.uid;
+    const items = [];
+    const row = el('div', 'emojis');
+    const mineEmo = new Set();
+    const agg = st.reactMap.get(id); if (agg) for (const [e, s] of agg) if (s.has(st.uid)) mineEmo.add(e);
+    for (const e of EMOJIS) {
+      const b = el('button', mineEmo.has(e) ? 'me' : '', e); b.type = 'button'; b.setAttribute('aria-label', 'تفاعل ' + e);
+      b.addEventListener('click', () => { closeSheet(); toggleReact(id, e); }); row.appendChild(b);
+    }
+    items.push({ node: row });
+    items.push({ label: 'رد', onClick: () => { setCtx({ type: 'reply', id }); ta.focus(); updateComposer(); } });
+    if (m.kind === 't') items.push({ label: 'نسخ النص', onClick: () => { try { navigator.clipboard.writeText(m.value).then(() => toast('اننسخ النص.'), () => toast('ما انسمح بالنسخ.')); } catch (e) { toast('ما انسمح بالنسخ.'); } } });
+    if (mine && m.kind === 't' && !m.pending) items.push({ label: 'تعديل', onClick: () => { setCtx({ type: 'edit', id }); ta.value = m.value; autosize(); ta.focus(); updateComposer(); } });
+    if (mine && !m.pending) items.push({ label: 'حذف الرسالة', danger: true, keep: true, onClick: (b) => {
+      if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'اضغط مرة ثانية للتأكيد'; return; }
+      closeSheet(); msgsCol().doc(id).delete().catch((e) => toast(errText(e)));
+    } });
+    openSheet(fmtFull.format(new Date(m.ts)) + (mine ? ' · رسالتك' : (m.name ? ' · ' + m.name : '')), items);
+  }
+
+  function exportChat() {
+    const lines = st.msgs.map((m) => {
+      const who = m.from === st.uid ? (st.myName || 'أنا') : (m.name || 'شخص');
+      const body = m.kind === 'i' ? '[صورة]' : m.kind === 'a' ? '[رسالة صوتية]' : m.value;
+      return '[' + fmtFull.format(new Date(m.ts)) + '] ' + who + ': ' + body;
+    });
+    const blob = new Blob(['﻿' + 'محادثة بيناتنا - غرفة ' + st.roomName + '\n\n' + lines.join('\n') + '\n'], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'bainatna-' + st.roomName + '.txt';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+
+  function openMenu() {
+    const tl = { auto: 'تلقائي', light: 'فاتح', dark: 'غامق' };
+    openSheet('القائمة', [
+      { label: 'بحث بالمحادثة', onClick: () => { searchbar.hidden = false; qIn.focus(); } },
+      { label: 'تصدير المحادثة كملف نصي', onClick: exportChat },
+      { label: 'المظهر: ' + tl[theme] + ' (اضغط للتبديل)', keep: true, onClick: (b) => { theme = theme === 'auto' ? 'light' : theme === 'light' ? 'dark' : 'auto'; lsSet('bainatna-theme', theme); applyTheme(theme); b.textContent = 'المظهر: ' + tl[theme] + ' (اضغط للتبديل)'; } },
+      { label: 'صوت الإشعار: ' + (st.sound ? 'شغّال' : 'مكتوم') + ' (اضغط للتبديل)', keep: true, onClick: (b) => { st.sound = !st.sound; lsSet('bainatna-sound', st.sound ? '1' : '0'); b.textContent = 'صوت الإشعار: ' + (st.sound ? 'شغّال' : 'مكتوم') + ' (اضغط للتبديل)'; if (st.sound) beep(); } },
+      { label: 'اختفاء رسائلي: ' + (st.exp ? expLabel(st.exp) : 'بدون') + ' (اضغط للتغيير)', keep: true, onClick: (b) => {
+        const opts = [0, 3600, 86400, 604800]; st.exp = opts[(opts.indexOf(st.exp) + 1) % opts.length];
+        lsSet('bainatna-exp-' + st.roomId, String(st.exp)); b.textContent = 'اختفاء رسائلي: ' + (st.exp ? expLabel(st.exp) : 'بدون') + ' (اضغط للتغيير)'; updateStatus();
+      } },
+      { label: 'تبديل الغرفة أو الخروج', danger: true, onClick: logout }
+    ]);
+  }
+
+  /* ---------- sound, title ---------- */
+  let actx = null;
+  function beep() {
+    if (!st.sound) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === 'suspended') actx.resume();
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine'; o.frequency.value = 880; g.gain.value = 0.0001;
+      o.connect(g); g.connect(actx.destination);
+      const t = actx.currentTime; g.gain.exponentialRampToValueAtTime(0.12, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      o.start(t); o.stop(t + 0.2);
+    } catch (e) {}
+  }
+  function updateTitle() { document.title = (st.unread ? '(' + st.unread + ') ' : '') + 'بيناتنا'; }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { st.unread = 0; updateTitle(); scheduleRead(); } });
+
+  /* ---------- read receipts, typing ---------- */
+  let readTimer = 0;
+  function scheduleRead() {
+    if (readTimer || !st.key || document.hidden) return;
+    readTimer = setTimeout(async () => {
+      readTimer = 0;
+      const latest = st.msgs.filter((m) => m.from !== st.uid && !m.pending).reduce((a, m) => Math.max(a, m.ts), 0);
+      if (!latest || latest <= st.lastReadSent) return;
+      st.lastReadSent = latest;
+      try { const e = await encObj(st.key, { t: latest, n: st.myName }); await room().collection('reads').doc(st.uid).set({ iv: e.iv, ct: e.ct }); }
+      catch (err) { st.lastReadSent = 0; }
+    }, 1500);
+  }
+  async function sendTyping() {
+    const now = Date.now();
+    if (!st.key || now - st.typingSent < 4000 || !ta.value.trim()) return;
+    st.typingSent = now;
+    try { const e = await encObj(st.key, { n: st.myName }); await room().collection('typing').doc(st.uid).set({ iv: e.iv, ct: e.ct }); } catch (err) {}
+  }
+  function renderTyping() {
+    const now = Date.now();
+    const names = Object.keys(st.typing).filter((u) => u !== st.uid && now - st.typing[u].at < 6000).map((u) => st.typing[u].n || 'شخص');
+    typingEl.hidden = !names.length;
+    typingEl.textContent = names.length ? names.join('، ') + (names.length > 1 ? ' يكتبون…' : ' يكتب…') : '';
+  }
+  setInterval(() => { if (st.key) { renderTyping(); if (st.msgs.some((m) => m.x)) rebuild(); } }, 3000);
+
+  /* ---------- composer ---------- */
+  function updateComposer() {
+    sendBtn.disabled = !st.key || st.busy || !ta.value.trim();
+    attachBtn.disabled = !st.key || st.busy || !!(st.ctx && st.ctx.type === 'edit');
+    micBtn.disabled = attachBtn.disabled;
+  }
+  function autosize() { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 140) + 'px'; }
+
+  thread.addEventListener('scroll', () => { st.stick = nearBottom(); if (st.stick) jump.hidden = true; });
+  jump.addEventListener('click', () => { thread.scrollTop = thread.scrollHeight; jump.hidden = true; });
+  form.addEventListener('submit', (e) => { e.preventDefault(); sendText(); });
+  ta.addEventListener('input', () => { autosize(); updateComposer(); sendTyping(); });
+  attachBtn.addEventListener('click', () => fileIn.click());
+  fileIn.addEventListener('change', () => { const f = fileIn.files && fileIn.files[0]; fileIn.value = ''; sendImage(f); });
+  micBtn.addEventListener('click', startRec);
+  $('recCancel').addEventListener('click', () => finishRec(false));
+  $('recSend').addEventListener('click', () => finishRec(true));
+  searchBtn.addEventListener('click', () => { searchbar.hidden = !searchbar.hidden; if (!searchbar.hidden) qIn.focus(); else { qIn.value = ''; st.query = ''; render(false); } });
+  $('qClose').addEventListener('click', () => { searchbar.hidden = true; qIn.value = ''; st.query = ''; render(false); });
+  qIn.addEventListener('input', () => { st.query = qIn.value; render(false); });
+  menuBtn.addEventListener('click', openMenu);
+  const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !coarse && !e.isComposing) { e.preventDefault(); sendText(); } });
+
+  /* ---------- listeners / enter / leave ---------- */
+  function startListening() {
+    stopListening();
+    st.snapReady = false; st.msgDocs = []; st.reactDocs = []; st.readDocs = []; st.msgs = []; st.loaded = false;
+    st.decCache.clear(); st.payloads.clear(); st.reads = {}; st.reactMap = new Map(); st.typing = {}; st.typingReady = false; st.seen.clear();
+    rows.clear(); dayNodes.clear(); thread.textContent = ''; render(false);
+    st.unsubs.push(msgsCol().orderBy('ts', 'desc').limit(150).onSnapshot((snap) => {
+      st.msgDocs = snap.docs.map((d) => { const x = d.data() || {}; return { id: d.id, from: x.from || '', iv: String(x.iv || ''), ct: String(x.ct || ''), ts: Number(x.ts) || 0, pending: d.metadata.hasPendingWrites }; }).reverse();
+      st.snapReady = true; rebuild();
+    }, (err) => { dot.classList.remove('on'); toast(errText(err)); }));
+    st.unsubs.push(room().collection('reacts').limit(1000).onSnapshot((snap) => {
+      st.reactDocs = snap.docs.map((d) => { const x = d.data() || {}; return { id: d.id, iv: String(x.iv || ''), ct: String(x.ct || '') }; });
+      rebuildReacts();
+    }, () => {}));
+    st.unsubs.push(room().collection('reads').limit(200).onSnapshot((snap) => {
+      st.readDocs = snap.docs.map((d) => { const x = d.data() || {}; return { id: d.id, iv: String(x.iv || ''), ct: String(x.ct || '') }; });
+      rebuildReads();
+    }, () => {}));
+    st.unsubs.push(room().collection('typing').limit(200).onSnapshot(async (snap) => {
+      const ready = st.typingReady; st.typingReady = true;
+      if (!ready) return;
+      for (const ch of snap.docChanges()) {
+        if (ch.type === 'removed') continue;
+        const x = ch.doc.data() || {};
+        const o = await decCached(st.key, 't' + ch.doc.id, { iv: String(x.iv || ''), ct: String(x.ct || '') });
+        st.typing[ch.doc.id] = { n: o && typeof o.n === 'string' ? o.n.slice(0, 24) : '', at: Date.now() };
+      }
+      renderTyping();
+    }, () => {}));
+  }
+  function stopListening() { st.unsubs.forEach((u) => { try { u(); } catch (e) {} }); st.unsubs = []; }
+
+  function showLock() {
+    lockForm.hidden = false; thread.hidden = true; form.hidden = true; searchBtn.hidden = true; menuBtn.hidden = true;
+    searchbar.hidden = true; typingEl.hidden = true; ctxbar.hidden = true; statusEl.textContent = 'ادخل الغرفة';
+    drawRoomChips();
+  }
+  function showChat() { lockForm.hidden = true; thread.hidden = false; form.hidden = false; searchBtn.hidden = false; menuBtn.hidden = false; }
+
+  function drawRoomChips() {
+    let list = []; try { list = JSON.parse(lsGet('bainatna-rooms', '[]')); } catch (e) { list = []; }
+    const box = $('roomChips'); box.textContent = ''; box.hidden = !list.length;
+    for (const r of list) { const b = el('button', null, r); b.type = 'button'; b.addEventListener('click', () => { roomIn.value = r; pwIn.focus(); }); box.appendChild(b); }
+  }
+  function rememberRoom(name) {
+    let list = []; try { list = JSON.parse(lsGet('bainatna-rooms', '[]')); } catch (e) { list = []; }
+    list = [name].concat(list.filter((x) => x !== name)).slice(0, 8); lsSet('bainatna-rooms', JSON.stringify(list));
+  }
+
+  async function enter(roomName, pw) {
+    const rn = roomName.trim().toLowerCase();
+    if (!rn || !pw) throw Object.assign(new Error('empty'), { code: 'empty' });
+    const key = await deriveKey(pw, rn);
+    st.roomId = (await sha256hex('bainatna-room|' + rn)).slice(0, 40);
+    st.roomName = roomName.trim();
+    const ref = room().collection('meta').doc('check');
+    const snap = await ref.get();
+    if (snap.exists) {
+      const d = snap.data() || {};
+      try { if ((await decObj(key, d.iv, d.ct)) !== 'bainatna-ok') return false; } catch (e) { return false; }
+    } else {
+      const e2 = await encObj(key, 'bainatna-ok'); await ref.set({ iv: e2.iv, ct: e2.ct });
+    }
+    st.key = key; return true;
+  }
+
+  function afterEnter() {
+    st.exp = Number(lsGet('bainatna-exp-' + st.roomId, '0')) || 0;
+    st.sound = lsGet('bainatna-sound', '1') !== '0';
+    st.lastReadSent = 0; st.unread = 0; updateTitle(); rememberRoom(st.roomName);
+    showChat(); updateComposer(); startListening(); updateStatus();
+  }
+
+  function logout() {
+    stopListening(); st.key = null; st.msgs = []; st.msgDocs = []; st.ctx = null;
+    lsDel('bainatna'); dot.classList.remove('on'); setCtx(null); showLock(); updateComposer();
+  }
+
+  lockForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!st.uid) { lockErr.textContent = 'ما اتصلت بالخدمة بعد. انتظر ثانية وجرّب.'; return; }
+    const r = roomIn.value, p = pwIn.value, nm = nameIn.value.trim().slice(0, 24);
+    if (!nm) { lockErr.textContent = 'اكتب اسمك.'; return; }
+    if (!r.trim() || !p) { lockErr.textContent = 'اكتب اسم الغرفة وكلمة السر.'; return; }
+    st.myName = nm; lsSet('bainatna-name', nm);
+    unlockBtn.disabled = true; lockErr.textContent = 'جاري التحقق…';
+    try {
+      const ok = await enter(r, p);
+      if (!ok) { lockErr.textContent = 'كلمة السر غلط لهذي الغرفة.'; return; }
+      lockErr.textContent = '';
+      if (remember.checked) lsSet('bainatna', JSON.stringify({ r, p })); else lsDel('bainatna');
+      pwIn.value = ''; afterEnter();
+    } catch (err) { lockErr.textContent = errText(err); }
+    finally { unlockBtn.disabled = false; }
+  });
+
+  /* ---------- boot ---------- */
+  showLock();
+  { const nm0 = lsGet('bainatna-name', ''); if (nm0) nameIn.value = nm0; }
+  const cfg = window.FIREBASE_CONFIG;
+  if (!cfg || !cfg.apiKey || /PASTE/i.test(JSON.stringify(cfg))) {
+    lockErr.textContent = 'لازم تلصق إعدادات Firebase داخل ملف config.js أول.'; unlockBtn.disabled = true; return;
+  }
+  window.addEventListener('error', (ev) => { if (!lockErr.textContent) lockErr.textContent = 'خطأ بالصفحة: ' + (ev.message || ''); });
+  function loadScript(u) {
+    return new Promise((res, rej) => {
+      const sc = document.createElement('script'); sc.src = u; sc.async = false;
+      const t = setTimeout(() => { sc.onload = sc.onerror = null; rej(new Error('timeout')); }, 12000);
+      sc.onload = () => { clearTimeout(t); res(); };
+      sc.onerror = () => { clearTimeout(t); rej(new Error('load')); };
+      document.head.appendChild(sc);
+    });
+  }
+  async function loadFirebase() {
+    const names = ['firebase-app-compat', 'firebase-auth-compat', 'firebase-firestore-compat'];
+    const bases = [
+      (n) => 'https://www.gstatic.com/firebasejs/10.12.2/' + n + '.js',
+      (n) => 'https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/' + n + '.min.js',
+      (n) => 'https://cdn.jsdelivr.net/npm/firebase@10.12.2/' + n + '.js'
+    ];
+    for (const base of bases) {
+      try {
+        for (const n of names) await loadScript(base(n));
+        if (window.firebase && firebase.auth && firebase.firestore) return true;
+      } catch (e) { /* جرّب المصدر اللي بعده */ }
+    }
+    return false;
+  }
+  unlockBtn.disabled = true;
+  statusEl.textContent = 'جاري تحميل المكتبة…';
+  loadFirebase().then((ok) => {
+    if (!ok) { statusEl.textContent = 'ادخل الغرفة'; lockErr.textContent = 'ما انحمّلت مكتبة Firebase. تأكد من الإنترنت وجرّب تحديث الصفحة.'; return; }
+    statusEl.textContent = 'جاري الاتصال…';
+
+  firebase.initializeApp(cfg);
+  st.fs = firebase.firestore();
+  unlockBtn.disabled = true;
+  firebase.auth().onAuthStateChanged(async (u) => {
+    if (!u) return;
+    st.uid = u.uid; unlockBtn.disabled = false; if (!st.key) statusEl.textContent = 'ادخل الغرفة';
+    if (st.key) return;
+    let saved = null; try { saved = JSON.parse(lsGet('bainatna', 'null')); } catch (x) {}
+    if (saved && saved.r && saved.p && nameIn.value.trim()) {
+      st.myName = nameIn.value.trim().slice(0, 24); remember.checked = true; roomIn.value = saved.r;
+      try { if (await enter(saved.r, saved.p)) afterEnter(); } catch (x) {}
+    }
+  });
+  firebase.auth().signInAnonymously().catch((e) => { statusEl.textContent = 'ادخل الغرفة'; lockErr.textContent = errText(e); });
+  });
+
+})();
+</script>
+</body>
+</html>
